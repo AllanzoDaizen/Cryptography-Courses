@@ -1,0 +1,16 @@
+Flag formats is: cryptoCTF{meowmeow}
+
+^cryptoCTF\{(?:\x6d\x65\x6f\x77){2}\}$
+
+\x6d\x65\x6f\x77 is hex for ASCII characters
+
+{2} means it repeats twice
+
+Let decode \x6d\x65\x6f\x77:
+
+\x6d = 'm'
+\x65 = 'e'
+\x6f = 'o'
+\x77 = 'w'
+
+So it spells "meow" and it repeats twice!
